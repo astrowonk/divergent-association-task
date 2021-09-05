@@ -1,0 +1,4 @@
+*.db
+*.ipynb
+*.pycache
+__pycache__/*

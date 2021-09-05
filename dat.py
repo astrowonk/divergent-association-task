@@ -4,34 +4,36 @@ a quick and simple measure of creativity
 
 import re
 import itertools
-import numpy
+import numpy as np
 import scipy.spatial.distance
+from sqlalchemy import create_engine, text
 
 
 class Model:
     """Create model to compute DAT"""
-
-    def __init__(self, model="glove.840B.300d.txt", dictionary="words.txt", pattern="^[a-z][a-z-]*[a-z]$"):
+    def __init__(self,
+                 model="dat.db",
+                 dictionary="words.txt",
+                 pattern="^[a-z][a-z-]*[a-z]$"):
         """Join model and words matching pattern in dictionary"""
 
         # Keep unique words matching pattern from file
-        words = set()
+        self.words = set()
         with open(dictionary, "r") as f:
             for line in f:
                 if re.match(pattern, line):
-                    words.add(line.rstrip("\n"))
+                    self.words.add(line.rstrip("\n"))
 
         # Join words with model
-        vectors = {}
-        with open(model, "r") as f:
-            for line in f:
-                tokens = line.split(" ")
-                word = tokens[0]
-                if word in words:
-                    vector = numpy.asarray(tokens[1:], "float32")
-                    vectors[word] = vector
-        self.vectors = vectors
+        self.dbc = create_engine("sqlite:///dat.db")
 
+    def get_vectors_from_sql(self, word):
+        with self.dbc.connect() as conn:
+            result = conn.execute(
+                text(f"select word, data from glove where word = :word", ),
+                {'word': word})
+            _, data = result.fetchone()
+            return np.array([float(x) for x in data.split(" ")])
 
     def validate(self, word):
         """Clean up word and find best candidate to use"""
@@ -39,7 +41,7 @@ class Model:
         # Strip unwanted characters
         clean = re.sub(r"[^a-zA-Z- ]+", "", word).strip().lower()
         if len(clean) <= 1:
-            return None # Word too short
+            return None  # Word too short
 
         # Generate candidates for possible compound words
         # "valid" -> ["valid"]
@@ -54,16 +56,15 @@ class Model:
             if "-" in clean:
                 candidates.append(re.sub(r"-+", "", clean))
         for cand in candidates:
-            if cand in self.vectors:
-                return cand # Return first word that is in model
-        return None # Could not find valid word
-
+            if cand in self.words:
+                return cand  # Return first word that is in model
+        return None  # Could not find valid word
 
     def distance(self, word1, word2):
         """Compute cosine distance (0 to 2) between two words"""
 
-        return scipy.spatial.distance.cosine(self.vectors.get(word1), self.vectors.get(word2))
-
+        return scipy.spatial.distance.cosine(self.get_vectors_from_sql(word1),
+                                             self.get_vectors_from_sql(word2))
 
     def dat(self, words, minimum=7):
         """Compute DAT score"""
@@ -78,7 +79,7 @@ class Model:
         if len(uniques) >= minimum:
             subset = uniques[:minimum]
         else:
-            return None # Not enough valid words
+            return None  # Not enough valid words
 
         # Compute distances between each pair of words
         distances = []
