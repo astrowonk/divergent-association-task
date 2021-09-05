@@ -5,7 +5,7 @@ a quick and simple measure of creativity
 import re
 import itertools
 import numpy as np
-import scipy.spatial.distance
+from scipy.spatial import distance
 from sqlalchemy import create_engine, text
 
 
@@ -24,7 +24,7 @@ class Model:
                 if re.match(pattern, line):
                     self.words.add(line.rstrip("\n"))
 
-        # Join words with model
+        #create sqlalchemy engine. Could probably just use the built in python library though.
         self.dbc = create_engine("sqlite:///dat.db")
 
     def get_vectors_from_sql(self, word):
@@ -63,8 +63,8 @@ class Model:
     def distance(self, word1, word2):
         """Compute cosine distance (0 to 2) between two words"""
 
-        return scipy.spatial.distance.cosine(self.get_vectors_from_sql(word1),
-                                             self.get_vectors_from_sql(word2))
+        return distance.cosine(self.get_vectors_from_sql(word1),
+                               self.get_vectors_from_sql(word2))
 
     def dat(self, words, minimum=7):
         """Compute DAT score"""
@@ -81,11 +81,9 @@ class Model:
         else:
             return None  # Not enough valid words
 
-        # Compute distances between each pair of words
-        distances = []
-        for word1, word2 in itertools.combinations(subset, 2):
-            dist = self.distance(word1, word2)
-            distances.append(dist)
+        # Compute distances between each pair of words using pdist
+        vector_array = np.array(
+            [self.get_vectors_from_sql(item) for item in subset])
 
-        # Compute the DAT score (average semantic distance multiplied by 100)
-        return (sum(distances) / len(distances)) * 100
+        # Compute the DAT score (average semantic distance (cosine) multiplied by 100)
+        return distance.pdist(vector_array, metric='cosine').mean() * 100
