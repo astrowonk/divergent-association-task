@@ -26,6 +26,7 @@ with open(model, "r") as f:
         tokens = line.split(" ", maxsplit=1)
         word = tokens[0]
         if word in words:
+            # just adds two text colunms, will process the data column in dat.py
             cur.execute("insert into glove (word, data) values (?, ?)",
                         (word, tokens[1].strip()))
     con.commit()
