@@ -9,8 +9,6 @@ from scipy.spatial import distance
 from sqlalchemy import create_engine, text
 import pandas as pd
 
-pd.options.plotting.backend = 'plotly'
-
 
 class Model:
 
@@ -104,6 +102,6 @@ class Model:
             f"select * from umap where word in ({binding_string})",
             self.dbc,
             params=words)
-        fig = data.plot.scatter(x='A', y='B', text='word')
+        fig = data.plot.scatter(x='A', y='B', text='word', backend='plotly')
         fig.update_traces(textposition="bottom right")
         return fig

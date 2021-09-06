@@ -6,3 +6,4 @@ __pycache__/*
 new_model.txt
 umap_coords.parquet
 umap_model.pickle
+*.gz
