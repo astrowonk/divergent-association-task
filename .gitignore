@@ -3,3 +3,6 @@
 *.pycache
 __pycache__/*
 .DS_Store
+new_model.txt
+umap_coords.parquet
+umap_model.pickle
