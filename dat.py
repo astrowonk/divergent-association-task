@@ -8,6 +8,7 @@ import numpy as np
 from scipy.spatial import distance
 from sqlalchemy import create_engine, text
 import pandas as pd
+import plotly.express as px
 
 
 class Model:
@@ -79,13 +80,13 @@ class Model:
                 uniques.append(valid)
 
         # Keep subset of words
-        if len(uniques) >= minimum and self.disable_minimum:
+        if len(uniques) >= minimum and not self.disable_minimum:
             subset = uniques[:minimum]
-        elif not self.disable_minimum:
+        elif self.disable_minimum:
             subset = uniques
         else:
             return
-
+        print(subset)
         # make the numpy array
         vector_array = np.array(
             [self.get_vectors_from_sql(item) for item in subset])
@@ -97,11 +98,11 @@ class Model:
     def plot_words(self, words):
         """get umap vectors from database and plot with plotly scatter"""
         binding_string = ','.join(['?'] * len(words))
-        # sql is ... inelegant, there should be an easier way to make this 'in' clause
+        # sqlalchemy is ... inelegant, there should be an easier way to make this 'in' clause
         data = pd.read_sql(
             f"select * from umap where word in ({binding_string})",
             self.dbc,
             params=words)
-        fig = data.plot.scatter(x='A', y='B', text='word', backend='plotly')
+        fig = px.scatter(data, x='A', y='B', text='word')
         fig.update_traces(textposition="bottom right")
         return fig
