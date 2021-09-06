@@ -4,17 +4,18 @@
 
 import re
 import sqlite3
+from tqdm import tqdm
 
-model = "glove.840B.300d.txt"
+#model =
 dictionary = 'words.txt'
 pattern = r"^[a-z][a-z-]*[a-z]$"
 
 
-def write_glove_to_sql():
+def write_glove_to_sql(model="glove.840B.300d.txt"):
     words = set()
     ## get dictionary into memory
     with open(dictionary, "r") as f:
-        for line in f:
+        for line in tqdm(f):
             if re.match(pattern, line):
                 words.add(line.rstrip("\n"))
 
@@ -35,7 +36,7 @@ def write_glove_to_sql():
     con.close()
 
 
-def shrink_glove_model_file():
+def shrink_glove_model_file(model='glove.840B.300d.txt'):
     '''This should shrink the 2GB+ glove text file to 270MB by matching with the hunspell dictionary'''
     words = set()
     with open(dictionary, "r") as f:
