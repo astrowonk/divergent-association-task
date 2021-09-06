@@ -7,9 +7,14 @@ import itertools
 import numpy as np
 from scipy.spatial import distance
 from sqlalchemy import create_engine, text
+import pandas as pd
+
+pd.options.plotting.backend = 'plotly'
 
 
 class Model:
+
+    disable_minimum = False
     """Create model to compute DAT"""
     def __init__(self,
                  model="dat.db",
@@ -76,14 +81,29 @@ class Model:
                 uniques.append(valid)
 
         # Keep subset of words
-        if len(uniques) >= minimum:
+        if len(uniques) >= minimum and self.disable_minimum:
             subset = uniques[:minimum]
+        elif not self.disable_minimum:
+            subset = uniques
         else:
-            return None  # Not enough valid words
+            return
 
-        # Compute distances between each pair of words using pdist
+        # make the numpy array
         vector_array = np.array(
             [self.get_vectors_from_sql(item) for item in subset])
 
         # Compute the DAT score (average semantic distance (cosine) multiplied by 100)
+        # now using pdist
         return distance.pdist(vector_array, metric='cosine').mean() * 100
+
+    def plot_words(self, words):
+        """get umap vectors from database and plot with plotly scatter"""
+        binding_string = ','.join(['?'] * len(words))
+        # sql is ... inelegant, there should be an easier way to make this 'in' clause
+        data = pd.read_sql(
+            f"select * from umap where word in ({binding_string})",
+            self.dbc,
+            params=words)
+        fig = data.plot.scatter(x='A', y='B', text='word')
+        fig.update_traces(textposition="bottom right")
+        return fig
