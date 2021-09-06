@@ -39,7 +39,10 @@ def update_score(words):
     fig.update_layout(yaxis_range=[-6.155959, 5.337202],
                       xaxis_range=[-5.572776, 5.194516])
     return f"Average Semantic Distance: {score.round(2)}", dcc.Graph(
-        id='figure', figure=fig, style={'height': '80vh'})
+        id='figure',
+        figure=fig,
+        style={'height': '80vh'},
+        config={'displayModeBar': False})
 
 
 if __name__ == "__main__":
