@@ -3,7 +3,6 @@ a quick and simple measure of creativity
 (Copyright 2021 Jay Olson; see LICENSE)"""
 
 import re
-import itertools
 import numpy as np
 from scipy.spatial import distance
 from sqlalchemy import create_engine, text
