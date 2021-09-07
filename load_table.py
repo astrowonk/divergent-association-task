@@ -16,6 +16,7 @@ pattern = r"^[a-z][a-z-]*[a-z]$"
 
 
 def write_glove_to_sql(model="glove.840B.300d.txt"):
+    """load glove model and dictionary, push text file into database filtering out by dictionary."""
     words = set()
     ## get dictionary into memory
     with open(dictionary, "r") as f:
@@ -41,7 +42,8 @@ def write_glove_to_sql(model="glove.840B.300d.txt"):
 
 
 def shrink_glove_model_file(model='glove.840B.300d.txt'):
-    '''This should shrink the 2GB+ glove text file to 270MB by matching with the hunspell dictionary'''
+    '''This should shrink the 2GB+ glove text file to 270MB by matching with the hunspell dictionary, matching the data that would be loaded into
+    the sql database above.'''
     words = set()
 
     #read in hunspell based dictionary
