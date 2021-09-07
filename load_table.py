@@ -64,6 +64,7 @@ def create_umap_table_sql(model='new_model.txt',
                           random_state=42,
                           n_neighbors=15,
                           **kwargs):
+    """This works but perhaps the word list needs to be filtered down even more.  Words like 'fifty-fith' occupy an outlier island of umap coords. """
     umap_model = UMAP(n_neighbors=n_neighbors, random_state=random_state)
 
     #reading vectors
@@ -85,3 +86,4 @@ def create_umap_table_sql(model='new_model.txt',
     umap_df.rename({
         'index': 'word'
     }, axis=1).to_sql('umap', con=dbc, index=False, if_exists='replace')
+    return umap_df
